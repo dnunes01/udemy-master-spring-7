@@ -76,6 +76,3 @@ lectures.
 ## What I'm taking from this
 
 *(Updated as I finish each section.)*
-
-- **Section 1:**
-- **Section 2:**
