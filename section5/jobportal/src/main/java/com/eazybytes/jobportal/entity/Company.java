@@ -24,13 +24,13 @@ public class Company {
     private String industry;
 
     @Column(name = "SIZE", length = 50, nullable = false)
-    private short size;
+    private String size;
 
     @Column(name = "RATING", nullable = false, precision = 3, scale = 2)
     private BigDecimal rating;
 
-    @Column(name = "LOCATION", length = 1000)
-    private String location;
+    @Column(name = "LOCATIONS", length = 1000)
+    private String locations;
 
     @Column(name = "FOUNDED", nullable = false)
     private Integer founded;
@@ -55,7 +55,7 @@ public class Company {
     private Instant updatedAt;
 
     @Column(name = "UPDATED_BY", length = 20)
-    private  String updatedBy;
+    private String updatedBy;
 
 
 }
