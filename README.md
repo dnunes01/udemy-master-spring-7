@@ -19,7 +19,7 @@ JPA, Spring Security, and deploying to AWS.
 | 3 | Mastering Spring Boot REST API Development | ✅ Done |
 | 4 | Spring Boot Essentials | ✅ Done |
 | 5 | Spring Data JPA | ✅ Done |
-| 6 | Databases with Docker | ⬜ |
+| 6 | Databases with Docker | 🟡 In progress |
 | 7 | Building Real Backend Features | ⬜ |
 | 8 | Essential Backend Skills | ⬜ |
 | 9 | Mastering JPA Relationships | ⬜ |
