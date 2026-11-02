@@ -12,4 +12,5 @@ services:
 
 volumes:
   jobportal-data:
-    external: true
+    name: jobportal-data
+    #external: true
