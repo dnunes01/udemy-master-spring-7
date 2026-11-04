@@ -49,4 +49,5 @@ public class Contact {
     @Column(name = "user_type", nullable = false, length = 50)
     private String userType;
 
+
 }
