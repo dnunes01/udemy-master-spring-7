@@ -1,7 +1,5 @@
 package com.eazybytes.jobportal.dto;
 
-import lombok.Value;
-
 import java.io.Serializable;
 
 /**
