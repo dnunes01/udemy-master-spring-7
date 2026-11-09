@@ -13,6 +13,7 @@ public class ScopeController {
 
     private final RequestScopedBean requestScopedBean;
     private final SessionScopedBean sessionScopedBean;
+    private final ApplicationScopedBean applicationScopedBean;
 
     @GetMapping("/request")
     public ResponseEntity<String> testRequestScope() {
@@ -27,9 +28,15 @@ public class ScopeController {
         return ResponseEntity.ok().body(sessionScopedBean.getUsername());
     }
 
+    @GetMapping("/application")
+    public ResponseEntity<Integer> testApplicationScope() {
+        applicationScopedBean.incrementVisitorsCount();
+        return ResponseEntity.ok().body(applicationScopedBean.getVisitorsCount());
+    }
+
     @GetMapping("/test")
-    public ResponseEntity<String> testScope() {
-        return ResponseEntity.ok().body(sessionScopedBean.getUsername());
+    public ResponseEntity<Integer> testScope() {
+        return ResponseEntity.ok().body(applicationScopedBean.getVisitorsCount());
     }
 
 }
