@@ -8,11 +8,11 @@ import org.springframework.web.context.annotation.RequestScope;
 @Component
 @RequestScope
 @Getter @Setter
-public class SessionScopeBean {
+public class RequestScopedBean {
 
     private String username;
 
-    public SessionScopeBean() {
-        System.out.println("SessionScopeBean created");
+    public RequestScopedBean() {
+        System.out.println("RequestScopedBean created");
     }
 }

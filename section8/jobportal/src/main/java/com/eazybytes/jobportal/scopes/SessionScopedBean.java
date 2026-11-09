@@ -4,15 +4,16 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
+import org.springframework.web.context.annotation.SessionScope;
 
 @Component
-@RequestScope
+@SessionScope
 @Getter @Setter
-public class RequestScopeBean {
+public class SessionScopedBean {
 
     private String username;
 
-    public RequestScopeBean() {
-        System.out.println("RequestScopeBean created");
+    public SessionScopedBean() {
+        System.out.println("SessionScopedBean created");
     }
 }
