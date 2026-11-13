@@ -23,7 +23,7 @@ JPA, Spring Security, and deploying to AWS.
 | 7 | Building Real Backend Features | ✅ Done |
 | 8 | Essential Backend Skills | ✅ Done |
 | 9 | Mastering JPA Relationships | ✅ Done |
-| 10 | Spring Security Essentials | ⬜ |
+| 10 | Spring Security Essentials | 🟡 In progress |
 | 11 | Authentication: From Passwords to JWT | ⬜ |
 | 12 | Database Authentication & CSRF Protection | ⬜ |
 | 13 | Logging in Spring Boot | ⬜ |
