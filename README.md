@@ -180,7 +180,31 @@ the way out, audit columns that fill themselves in, and web-aware bean scopes.
 | `ddl-auto` commented back out; explicit `spring.docker.compose.start.command=up` and `stop.command=stop` | `application.properties` |
 
 ### Section 9 — Mastering JPA Relationships (`section9/jobportal`)
-Scaffolded only — a straight copy of Section 8, waiting on the first relationship lecture.
+A third table, `jobs`, and the first relationship in the app: every job belongs to one company,
+and a company owns a list of jobs. The table was designed first and the entity generated from
+it with the updated JPA Buddy plugin, then the two sides of the association wired by hand.
+
+| Topic | Where |
+|-------|-------|
+| The `jobs` DDL — 23 columns, `DECIMAL(12,2)` salaries, `TEXT` description/requirements/benefits, and `FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE` | `sql/jobportal-schema.sql` |
+| The `contacts` DDL backfilled into the schema script — the table itself was created by `ddl-auto=update` back in Section 7, so this is the first time it's written down | `sql/jobportal-schema.sql` |
+| 1,000 seeded job rows spread across the 30 companies, with `requirements`/`benefits` as JSON arrays stored as text | `sql/jobportal-data.sql` |
+| A `Job` entity generated from the table by JPA Buddy / IntelliJ's JPA Designer, then tidied | `entity/Job` |
+| The owning side: `@ManyToOne(fetch = FetchType.LAZY, optional = false)` with `@JoinColumn(name = "company_id", nullable = false)` — lazy, so loading a job doesn't drag its company along | `entity/Job#company` |
+| `@OnDelete(action = OnDeleteAction.CASCADE)`, Hibernate's way of saying the cascade lives in the DDL rather than in Java | `entity/Job#company` |
+| The inverse side: `@OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)`, initialised to `new ArrayList<>()` — `mappedBy` is what keeps it from becoming a second foreign key | `entity/Company#jobs` |
+| `@AttributeOverrides` re-declaring the four inherited audit columns — the first entity to override `BaseEntity`'s mapping instead of just extending it | `entity/Job` |
+| Bean Validation annotations (`@NotNull`, `@Size`) on entity fields rather than only on a DTO — JPA Buddy's generated style, mirroring the `NOT NULL` and length constraints in the DDL | `entity/Job` |
+| `@ColumnDefault` mirroring each DDL default (`'USD'`, `'year'`, `'ACTIVE'`, `0`, `false`) | `entity/Job` |
+| `BigDecimal` for the salary range and `Instant` for `postedDate`/`applicationDeadline` | `entity/Job` |
+
+Not built yet: there's no `JobRepository`, service, DTO or controller, so the relationship exists
+in the mapping and the database but isn't exposed through the API. `CompanyDto` is untouched —
+nothing serialises the `jobs` list, which is also what keeps the lazy side from blowing up.
+
+Worth remembering: copying Section 8 into Section 9 with `robocopy` broke IntelliJ's database
+connection — the data source wouldn't link any more. Deleting the folder and copying it manually
+fixed it, so the later per-section copies are plain copies, not `robocopy`.
 
 ## Stack
 
@@ -215,6 +239,8 @@ another SQL client against `localhost:3306` (`root`/`root`, database `jobportal`
 chores on a fresh machine: apply `sql/jobportal-schema.sql` and `sql/jobportal-data.sql` by hand,
 since they're no longer run at startup, and create the volume up front for Sections 7–9
 (`docker volume create jobportal-data`), because their `compose.yml` declares it `external: true`.
+Section 9's pair of scripts is the complete set — `companies`, `contacts` and `jobs`, with 30
+companies and 1,000 jobs — so that's the one to run against a fresh database.
 
 Package names stay `com.eazybytes.*` to match the course, so my code lines up with the
 lectures.
