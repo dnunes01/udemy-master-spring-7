@@ -22,7 +22,7 @@ JPA, Spring Security, and deploying to AWS.
 | 6 | Databases with Docker | ✅ Done |
 | 7 | Building Real Backend Features | ✅ Done |
 | 8 | Essential Backend Skills | ✅ Done |
-| 9 | Mastering JPA Relationships | 🟡 In progress |
+| 9 | Mastering JPA Relationships | ✅ Done |
 | 10 | Spring Security Essentials | ⬜ |
 | 11 | Authentication: From Passwords to JWT | ⬜ |
 | 12 | Database Authentication & CSRF Protection | ⬜ |
@@ -197,10 +197,13 @@ it with the updated JPA Buddy plugin, then the two sides of the association wire
 | Bean Validation annotations (`@NotNull`, `@Size`) on entity fields rather than only on a DTO — JPA Buddy's generated style, mirroring the `NOT NULL` and length constraints in the DDL | `entity/Job` |
 | `@ColumnDefault` mirroring each DDL default (`'USD'`, `'year'`, `'ACTIVE'`, `0`, `false`) | `entity/Job` |
 | `BigDecimal` for the salary range and `Instant` for `postedDate`/`applicationDeadline` | `entity/Job` |
+| `JobDto` as a flat `record`, and `CompanyDto` extended with `List<JobDto> jobs` — mapped by hand in `transformCompanyToDto`/`transformJobToDto` | `dto/JobDto`, `CompanyServiceImpl` |
 
-Not built yet: there's no `JobRepository`, service, DTO or controller, so the relationship exists
-in the mapping and the database but isn't exposed through the API. `CompanyDto` is untouched —
-nothing serialises the `jobs` list, which is also what keeps the lazy side from blowing up.
+The relationship now reaches the API: `CompanyDto` carries a `List<JobDto>`, and
+`CompanyServiceImpl` maps each company's `jobs` into `JobDto` records — flattening the company
+back to `companyId`/`companyName`/`companyLogo` instead of nesting it, which is what stops the
+two-way association from recursing when it's serialised. There's still no `JobRepository` or
+job controller; jobs are only reachable through their company.
 
 Worth remembering: copying Section 8 into Section 9 with `robocopy` broke IntelliJ's database
 connection — the data source wouldn't link any more. Deleting the folder and copying it manually
