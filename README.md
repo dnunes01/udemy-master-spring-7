@@ -19,10 +19,10 @@ JPA, Spring Security, and deploying to AWS.
 | 3 | Mastering Spring Boot REST API Development | ✅ Done |
 | 4 | Spring Boot Essentials | ✅ Done |
 | 5 | Spring Data JPA | ✅ Done |
-| 6 | Databases with Docker | 🟡 In progress |
-| 7 | Building Real Backend Features | ⬜ |
-| 8 | Essential Backend Skills | ⬜ |
-| 9 | Mastering JPA Relationships | ⬜ |
+| 6 | Databases with Docker | ✅ Done |
+| 7 | Building Real Backend Features | ✅ Done |
+| 8 | Essential Backend Skills | ✅ Done |
+| 9 | Mastering JPA Relationships | 🟡 In progress |
 | 10 | Spring Security Essentials | ⬜ |
 | 11 | Authentication: From Passwords to JWT | ⬜ |
 | 12 | Database Authentication & CSRF Protection | ⬜ |
@@ -116,16 +116,109 @@ It grows a real entity, repository, and service in Section 5.
 
 `section5/job-portal-ui` is the instructor's React + Vite front end, dropped in as-is so the
 API has a real client. It runs on `http://localhost:5173`, the one origin the backend's CORS
-config allows.
+config allows. No UI folder gets copied into the later sections, so this stays the front end
+for Sections 6+ as well.
+
+### Section 6 — Databases with Docker (`section6/jobportal`)
+H2 comes out, MySQL goes in, and Docker Compose runs it. The Java here is byte-identical to
+Section 5 — every change in this section is infrastructure.
+
+| Topic | Where |
+|-------|-------|
+| H2 dropped (`spring-boot-h2console`, `com.h2database:h2`) in favour of `com.mysql:mysql-connector-j` (runtime) | `pom.xml` |
+| `spring-boot-docker-compose` (runtime), so Boot drives the Compose stack itself | `pom.xml` |
+| A `mysql:latest` service named `dbservice`, running as container `jobportaldb` on `3306:3306`, with `MYSQL_ROOT_PASSWORD` and `MYSQL_DATABASE` | `compose.yml` |
+| The named volume `jobportal-data` mounted at `/var/lib/mysql`, pinned with `name:` and with `#external: true` left commented — so Compose creates and owns it | `compose.yml` |
+| A MySQL datasource with every part behind an env var (`DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`) | `spring.datasource.*` |
+| `spring.docker.compose.lifecycle-management=start-and-stop`, plus `spring.docker.compose.file` tried and left commented | `application.properties` |
+| Readable SQL in the console via `hibernate.format_sql`, behind `HIBERNATE_FORMAT_SQL` | `application.properties` |
+
+Worth remembering: with the `spring.sql.init.*` lines gone, `src/main/resources/sql/*.sql` are
+**no longer run at startup** — the default `embedded` init mode doesn't cover MySQL. From here on
+they're reference DDL and seed data, applied by hand once per machine, and the `jobportal-data`
+volume is what makes the rows survive a restart.
+
+### Section 7 — Building Real Backend Features (`section7/jobportal`)
+The first feature built rather than followed along: a contacts endpoint, end to end, plus the
+beginnings of a global error-handling layer. The entity, repository and DTO were scaffolded with
+JPA Buddy / JPA Designer from the table, then tidied by hand.
+
+| Topic | Where |
+|-------|-------|
+| Feature packages: the company service moves out of `service/` to sit beside its controller | `company/service/ICompanyService`, `company/service/impl/CompanyServiceImpl` |
+| A second entity on the `contacts` table — `@Lob` message, `@ColumnDefault("'NEW'")` status, its own hand-mapped audit columns | `entity/Contact` |
+| A second `JpaRepository`, service interface and implementation | `repository/ContactRepository`, `contact/service/IContactService`, `contact/service/impl/ContactServiceImpl` |
+| A `record` request DTO for a write endpoint | `dto/ContactRequestDto` |
+| `POST /api/contacts` at `version = "1.0"` — 201 on success, 500 on failure | `contact/controller/ContactController` |
+| `BeanUtils.copyProperties` for DTO → entity, with `createdAt`, `createdBy = "System"` and `status = "NEW"` set by hand | `ContactServiceImpl#transformToEntity` |
+| `spring.jpa.hibernate.ddl-auto=update` — how the `contacts` table got created without writing DDL | `application.properties` |
+| The `companies` DDL corrected to what `ddl-auto=validate` complained about (`description TEXT` → `TINYTEXT`) | `sql/jobportal-schema.sql` |
+| `@RestControllerAdvice` with handlers for `Exception` and `NullPointerException` | `exception/GlobalExceptionHandler` |
+| An error-response `record` built from `WebRequest#getDescription(false)` — `apiPath`, `errorCode`, `errorMessage`, `errorTime` | `dto/ErrorResponseDto` |
+| The volume switched to `external: true`, so it has to exist before the app starts | `compose.yml` |
+
+### Section 8 — Essential Backend Skills (`section8/jobportal`)
+Four things the contacts API was missing: validation on the way in, proper validation errors on
+the way out, audit columns that fill themselves in, and web-aware bean scopes.
+
+| Topic | Where |
+|-------|-------|
+| `spring-boot-starter-validation` | `pom.xml` |
+| `@NotBlank`, `@Email`, `@Size`, and a `@Pattern` on `userType`, each with its own message | `dto/ContactRequestDto` |
+| `@Valid` on the `@RequestBody` | `ContactController#saveContactMsg` |
+| Constraints on a `@RequestParam` instead of a body — `@Validated` + `@NotBlank` + `@Size` on the new `GET /api/contacts` | `ContactController#fetchOpenContacts` |
+| `MethodArgumentNotValidException` → a `Map` of field → message with 400, from `getBindingResult().getFieldErrors()` | `exception/GlobalExceptionHandler` |
+| `HandlerMethodValidationException` → the same shape for parameter-level failures, walking `getParameterValidationResults()` | `exception/GlobalExceptionHandler` |
+| A `@MappedSuperclass` with `@EntityListeners(AuditingEntityListener.class)`, holding all four audit columns in one place | `entity/BaseEntity` |
+| `@CreatedDate`/`@CreatedBy`/`@LastModifiedDate`/`@LastModifiedBy` next to Hibernate's `@CreationTimestamp`/`@UpdateTimestamp`, with `updatable = false` / `insertable = false` guards | `entity/BaseEntity` |
+| Both entities cut down to their own columns by extending the base class | `entity/Company`, `entity/Contact` |
+| `@EnableJpaAuditing(auditorAwareRef = "auditorAwareImpl")` and an `AuditorAware<String>` returning `"Anonymous User"` | `JobportalApplication`, `audit/AuditorAwareImpl` |
+| Auditing taking over from hand-set fields — the old `setCreatedAt`/`setCreatedBy` lines kept commented for contrast | `ContactServiceImpl#transformToEntity` |
+| `@RequestScope`, `@SessionScope` and `@ApplicationScope` beans, each logging on construction | `scopes/RequestScopedBean`, `scopes/SessionScopedBean`, `scopes/ApplicationScopedBean` |
+| `/api/scope/request`, `/session`, `/application` and `/test` — tested in Postman, watching the session cookie decide which bean gets reused and the application-scoped counter keep climbing | `scopes/ScopeController` |
+| `springdoc-openapi-starter-webmvc-ui` 3.2.0 added | `pom.xml` |
+| `ddl-auto` commented back out; explicit `spring.docker.compose.start.command=up` and `stop.command=stop` | `application.properties` |
+
+### Section 9 — Mastering JPA Relationships (`section9/jobportal`)
+A third table, `jobs`, and the first relationship in the app: every job belongs to one company,
+and a company owns a list of jobs. The table was designed first and the entity generated from
+it with the updated JPA Buddy plugin, then the two sides of the association wired by hand.
+
+| Topic | Where |
+|-------|-------|
+| The `jobs` DDL — 23 columns, `DECIMAL(12,2)` salaries, `TEXT` description/requirements/benefits, and `FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE` | `sql/jobportal-schema.sql` |
+| The `contacts` DDL backfilled into the schema script — the table itself was created by `ddl-auto=update` back in Section 7, so this is the first time it's written down | `sql/jobportal-schema.sql` |
+| 1,000 seeded job rows spread across the 30 companies, with `requirements`/`benefits` as JSON arrays stored as text | `sql/jobportal-data.sql` |
+| A `Job` entity generated from the table by JPA Buddy / IntelliJ's JPA Designer, then tidied | `entity/Job` |
+| The owning side: `@ManyToOne(fetch = FetchType.LAZY, optional = false)` with `@JoinColumn(name = "company_id", nullable = false)` — lazy, so loading a job doesn't drag its company along | `entity/Job#company` |
+| `@OnDelete(action = OnDeleteAction.CASCADE)`, Hibernate's way of saying the cascade lives in the DDL rather than in Java | `entity/Job#company` |
+| The inverse side: `@OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)`, initialised to `new ArrayList<>()` — `mappedBy` is what keeps it from becoming a second foreign key | `entity/Company#jobs` |
+| `@AttributeOverrides` re-declaring the four inherited audit columns — the first entity to override `BaseEntity`'s mapping instead of just extending it | `entity/Job` |
+| Bean Validation annotations (`@NotNull`, `@Size`) on entity fields rather than only on a DTO — JPA Buddy's generated style, mirroring the `NOT NULL` and length constraints in the DDL | `entity/Job` |
+| `@ColumnDefault` mirroring each DDL default (`'USD'`, `'year'`, `'ACTIVE'`, `0`, `false`) | `entity/Job` |
+| `BigDecimal` for the salary range and `Instant` for `postedDate`/`applicationDeadline` | `entity/Job` |
+
+Not built yet: there's no `JobRepository`, service, DTO or controller, so the relationship exists
+in the mapping and the database but isn't exposed through the API. `CompanyDto` is untouched —
+nothing serialises the `jobs` list, which is also what keeps the lazy side from blowing up.
+
+Worth remembering: copying Section 8 into Section 9 with `robocopy` broke IntelliJ's database
+connection — the data source wouldn't link any more. Deleting the folder and copying it manually
+fixed it, so the later per-section copies are plain copies, not `robocopy`.
 
 ## Stack
 
 - Java 25
 - Maven, IntelliJ IDEA
 - Sections 1–2: Spring Framework 7 standalone (`spring-context` 7.0.3)
-- Sections 3+: Spring Boot 4 (4.1.1 in Section 3, 4.1.2 from Section 4), Spring WebMVC
-- Sections 4+: Spring Data JPA / Hibernate, H2
+- Sections 3+: Spring Boot 4 with Spring WebMVC — 4.1.1 in Section 3, 4.1.2 in Sections 4–7,
+  4.0.9 in Sections 8–9
+- Sections 4+: Spring Data JPA / Hibernate
+- Sections 4–5: H2, file-based, with the H2 console
+- Sections 6+: MySQL (`mysql:latest`) in Docker, started and stopped by Boot through
+  `spring-boot-docker-compose`
 - Sections 5+: Lombok; React + Vite front end (`section5/job-portal-ui`)
+- Sections 8+: Jakarta Bean Validation, Spring Data JPA auditing, springdoc-openapi
 
 ## Running an example
 
@@ -136,11 +229,18 @@ import, then run the `main` method of the example you want, such as
 From Section 3 on, each section is a Spring Boot app instead: run its `*Application` class
 (or `./mvnw spring-boot:run`) and call the endpoints on `http://localhost:8080`. Section 5
 also has a front end — `cd section5/job-portal-ui && npm install && npm run dev` serves it
-on `http://localhost:5173`.
+on `http://localhost:5173`, and it keeps working against the later sections' backends too.
+
+From Section 6 on the database is MySQL in Docker, so Docker Desktop has to be running first.
+Boot brings the Compose stack up and down itself
+(`spring.docker.compose.lifecycle-management=start-and-stop`), so there's no `docker compose up`
+to run by hand — but there's no H2 console any more either, so use IntelliJ's database tool or
+another SQL client against `localhost:3306` (`root`/`root`, database `jobportal`). Two one-time
+chores on a fresh machine: apply `sql/jobportal-schema.sql` and `sql/jobportal-data.sql` by hand,
+since they're no longer run at startup, and create the volume up front for Sections 7–9
+(`docker volume create jobportal-data`), because their `compose.yml` declares it `external: true`.
+Section 9's pair of scripts is the complete set — `companies`, `contacts` and `jobs`, with 30
+companies and 1,000 jobs — so that's the one to run against a fresh database.
 
 Package names stay `com.eazybytes.*` to match the course, so my code lines up with the
 lectures.
-
-## What I'm taking from this
-
-*(Updated as I finish each section.)*
