@@ -26,15 +26,6 @@ public class WebConfig implements WebMvcConfigurer {
                 .addSupportedVersions("1.0","2.0","3.0").setDefaultVersion("1.0");
     }
 
-    /**
-     * Help with configuring {@link HandlerMapping} path matching options such as
-     * whether to use parsed {@code PathPatterns} or String pattern matching
-     * with {@code PathMatcher}, whether to match trailing slashes, and more.
-     *
-     * @param configurer
-     * @see PathMatchConfigurer
-     * @since 4.0.3
-     */
     @Override
     public void configurePathMatch(PathMatchConfigurer configurer) {
         configurer.addPathPrefix("/api",_ -> true);
