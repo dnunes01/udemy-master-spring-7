@@ -55,7 +55,8 @@ public class JobPortalSecurityConfig {
 //                                        "/swagger-ui.html",
 //                                        "/webjars/**"
 //                                ).permitAll())
-                .formLogin(flc -> flc.disable())
+                .formLogin(withDefaults())
+//                .formLogin(flc -> flc.disable())
                 .httpBasic(withDefaults())
                 .build();
     }
