@@ -6,6 +6,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
@@ -44,19 +49,9 @@ public class JobPortalSecurityConfig {
                     requests.anyRequest().denyAll();
 
                 })
-//                        requests.requestMatchers("/api/companies/public").permitAll()
-//                                .requestMatchers("/api/contacts/public").permitAll())
-//                        requests.requestMatchers(RegexRequestMatcher.regexMatcher(".*public$")).permitAll()
-//                                .requestMatchers(
-//                                        "/api/swagger-ui.html",
-//                                        "/swagger-ui/**",
-//                                        "/api/v3/api-docs/**",
-//                                        "/swagger-resources/**",
-//                                        "/swagger-ui.html",
-//                                        "/webjars/**"
-//                                ).permitAll())
-                .formLogin(withDefaults())
-//                .formLogin(flc -> flc.disable())
+
+//                .formLogin(withDefaults())
+                .formLogin(flc -> flc.disable())
                 .httpBasic(withDefaults())
                 .build();
     }
@@ -73,6 +68,24 @@ public class JobPortalSecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService() {
+        var user1 = User.builder()
+                .username("Dan")
+                .password("$2a$10$Bu7IbfgBOi0zLkxoKQmfyOE.Pi8mjiNDMKFnmZh4dZev95InoS6/C")
+                .roles("USER").build();
+        var user2 = User.builder()
+                .username("admin")
+                .password("$2a$10$pAJUihPyjCvv0H9EPUh5ieKHRT9gnxQt5uyyRZB9aTrKELKCb8YUe")
+                .roles("ADMIN").build();
+        return new InMemoryUserDetailsManager(user1,user2);
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
 }
