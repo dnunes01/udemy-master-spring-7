@@ -247,3 +247,10 @@ companies and 1,000 jobs — so that's the one to run against a fresh database.
 
 Package names stay `com.eazybytes.*` to match the course, so my code lines up with the
 lectures.
+
+## How I use AI on this project
+
+- **Code:** I type every example myself in IntelliJ, following the lectures. I use Claude Code as a
+  tutor: it explains concepts, answers questions, and reviews what I've written. It doesn't write the
+  course code.
+- **This README:** drafted with Claude Code from my commits and code, then reviewed and edited by me.
