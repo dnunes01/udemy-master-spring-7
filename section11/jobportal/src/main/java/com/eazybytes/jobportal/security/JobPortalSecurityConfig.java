@@ -52,8 +52,8 @@ public class JobPortalSecurityConfig {
 
                 })
 
-//                .formLogin(withDefaults())
-                .formLogin(flc -> flc.disable())
+                .formLogin(withDefaults())
+//                .formLogin(flc -> flc.disable())
                 .httpBasic(withDefaults())
                 .build();
     }
