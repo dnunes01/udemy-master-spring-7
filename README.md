@@ -23,8 +23,8 @@ JPA, Spring Security, and deploying to AWS.
 | 7 | Building Real Backend Features | ✅ Done |
 | 8 | Essential Backend Skills | ✅ Done |
 | 9 | Mastering JPA Relationships | ✅ Done |
-| 10 | Spring Security Essentials | 🟡 In progress |
-| 11 | Authentication: From Passwords to JWT | ⬜ |
+| 10 | Spring Security Essentials | ✅ Done |
+| 11 | Authentication: From Passwords to JWT | 🟡 In progress |
 | 12 | Database Authentication & CSRF Protection | ⬜ |
 | 13 | Logging in Spring Boot | ⬜ |
 | 14 | Aspect-Oriented Programming (AOP) | ⬜ |
@@ -116,8 +116,9 @@ It grows a real entity, repository, and service in Section 5.
 
 `section5/job-portal-ui` is the instructor's React + Vite front end, dropped in as-is so the
 API has a real client. It runs on `http://localhost:5173`, the one origin the backend's CORS
-config allows. No UI folder gets copied into the later sections, so this stays the front end
-for Sections 6+ as well.
+config allows. It stays the front end for Sections 6–9. Section 10 copies it to
+`section10/job-portal-ui` and updates its config for Spring Security, and that copy is the
+front end from Section 10 on.
 
 ### Section 6 — Databases with Docker (`section6/jobportal`)
 H2 comes out, MySQL goes in, and Docker Compose runs it. The Java here is byte-identical to
@@ -215,13 +216,14 @@ fixed it, so the later per-section copies are plain copies, not `robocopy`.
 - Maven, IntelliJ IDEA
 - Sections 1–2: Spring Framework 7 standalone (`spring-context` 7.0.3)
 - Sections 3+: Spring Boot 4 with Spring WebMVC — 4.1.1 in Section 3, 4.1.2 in Sections 4–7,
-  4.0.9 in Sections 8–9
+  4.0.9 in Sections 8–11
 - Sections 4+: Spring Data JPA / Hibernate
 - Sections 4–5: H2, file-based, with the H2 console
 - Sections 6+: MySQL (`mysql:latest`) in Docker, started and stopped by Boot through
   `spring-boot-docker-compose`
 - Sections 5+: Lombok; React + Vite front end (`section5/job-portal-ui`)
 - Sections 8+: Jakarta Bean Validation, Spring Data JPA auditing, springdoc-openapi
+- Sections 10+: Spring Security
 
 ## Running an example
 
@@ -230,9 +232,9 @@ import, then run the `main` method of the example you want, such as
 `section2/demo/src/main/java/com/eazybytes/ex7/config/Example7.java`.
 
 From Section 3 on, each section is a Spring Boot app instead: run its `*Application` class
-(or `./mvnw spring-boot:run`) and call the endpoints on `http://localhost:8080`. Section 5
-also has a front end — `cd section5/job-portal-ui && npm install && npm run dev` serves it
-on `http://localhost:5173`, and it keeps working against the later sections' backends too.
+(or `./mvnw spring-boot:run`) and call the endpoints on `http://localhost:8080`. The front
+end runs with `npm install && npm run dev` on `http://localhost:5173`: use
+`section5/job-portal-ui` for Sections 5–9 and `section10/job-portal-ui` from Section 10 on.
 
 From Section 6 on the database is MySQL in Docker, so Docker Desktop has to be running first.
 Boot brings the Compose stack up and down itself
