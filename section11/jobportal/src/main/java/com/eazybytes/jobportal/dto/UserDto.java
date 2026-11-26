@@ -14,7 +14,7 @@ public class UserDto {
     private String name;
     private String email;
     private String mobileNumber;
-    private String roll;
+    private String role;
     private Long companyId;
     private Instant createdAt;
 }
